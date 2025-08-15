@@ -1,0 +1,96 @@
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+data = pd.read_csv('Churn_Modelling.csv')  # Replace with your dataset
+X = data.drop('Exited', axis=1)
+y = data['Exited']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+categorical_cols = ['RowNumber', 'CustomerId', 'Surname', 'Geography', 'Gender', ]
+numeric_cols = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
+# Create a ColumnTransformer to handle preprocessing
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_cols),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols)
+    ]
+)
+# Build and train Logistic Regression classifier
+lr_model = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', LogisticRegression(max_iter=1000))])
+lr_model.fit(X_train, y_train)
+y_pred_lr = lr_model.predict(X_test)
+
+# Build and train Random Forest classifier
+rf_model = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', RandomForestClassifier())])
+rf_model.fit(X_train, y_train)
+y_pred_rf = rf_model.predict(X_test)
+
+# Build and train Gradient Boosting classifier
+gb_model = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', GradientBoostingClassifier())])
+gb_model.fit(X_train, y_train)
+y_pred_gb = gb_model.predict(X_test)
+classifiers = [
+    ('Logistic Regression', y_pred_lr),
+    ('Random Forest', y_pred_rf),
+    ('Gradient Boosting', y_pred_gb)
+]
+for name, y_pred in classifiers:
+    print(name)
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    print(classification_report(y_test, y_pred))
+    print(confusion_matrix(y_test, y_pred))
+    print("\n")
+Logistic Regression
+Accuracy: 0.811
+              precision    recall  f1-score   support
+
+           0       0.83      0.96      0.89      1607
+           1       0.55      0.20      0.30       393
+
+    accuracy                           0.81      2000
+   macro avg       0.69      0.58      0.59      2000
+weighted avg       0.78      0.81      0.77      2000
+
+[[1542   65]
+ [ 313   80]]
+
+
+Random Forest
+Accuracy: 0.845
+              precision    recall  f1-score   support
+
+           0       0.84      0.99      0.91      1607
+           1       0.87      0.25      0.38       393
+
+    accuracy                           0.84      2000
+   macro avg       0.86      0.62      0.65      2000
+weighted avg       0.85      0.84      0.81      2000
+
+[[1593   14]
+ [ 296   97]]
+
+
+Gradient Boosting
+Accuracy: 0.863
+              precision    recall  f1-score   support
+
+           0       0.88      0.96      0.92      1607
+           1       0.75      0.46      0.57       393
+
+    accuracy                           0.86      2000
+   macro avg       0.81      0.71      0.74      2000
+weighted avg       0.85      0.86      0.85      2000
+
+[[1547   60]
+ [ 214  179]]
+
+
+ 
+ 
